@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oraculo-mccomics"
+version = "4.0.0"
+description = "IA local universal con 3 niveles de seguridad — McComics®"
+authors = [{name = "McComics Servicios Generales", email = "mccomicsservics@gmail.com"}]
+license = {text = "Proprietary"}
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+keywords = ["ai", "local", "code-search", "rag", "cobol", "security"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Code Generators",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "pyyaml>=6.0.1",
+    "duckdb>=0.10.0",
+    "watchdog>=4.0.0",
+    "charset-normalizer>=3.3.0",
+]
+
+[project.optional-dependencies]
+ui = ["pywebview>=5.0"]
+llm = ["llama-cpp-python>=0.2.0"]
+dev = ["pytest>=8.0", "ruff>=0.4.0"]
+
+[project.urls]
+Homepage = "https://github.com/McComics-Servics/oraculo-mccomics"
+Issues = "https://github.com/McComics-Servics/oraculo-mccomics/issues"
+
+[project.scripts]
+oraculo = "oraculo.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+oraculo = [
+    "../profiles/*.yaml",
+    "../profiles/*.sig",
+    "../schemas/v1/*.json",
+    "../manifests/*.yaml",
+    "../manifests/*.sig",
+    "polyglot/L2_antlr/grammars/*.g4",
+    "polyglot/L3_patterns/patterns/*.yaml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit",
+    "integration",
+    "e2e",
+    "slow",
+    "requires_llm",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

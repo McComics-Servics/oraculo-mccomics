@@ -1,0 +1,119 @@
+profile_name: banking
+profile_version: 1
+schema_version: "1.0"
+description: "Paranoia verificable para entornos criticos"
+
+crypto:
+  master_key_source:
+    type: keyring_plus_passphrase
+    kdf: argon2id
+    kdf_params:
+      memory_kb: 65536
+      iterations: 3
+      parallelism: 4
+      salt_bytes: 32
+  cipher: aes_256_gcm
+  row_level_hmac: true
+  domain_separation: true
+  key_rotation_days: 30
+  secure_delete: crypto_shred
+
+transport:
+  ipc_native: true
+  http_loopback: false
+  http_port_range: [0, 0]
+  cors_allowed_origins: []
+  require_hmac_body: true
+  require_nonce: true
+  require_timestamp: true
+  timestamp_skew_seconds: 30
+
+network:
+  external_allowed: false
+  allowlist_domains: []
+  ip_pinning: true
+  air_gap_verify: true
+  air_gap_test_ip: "10.255.255.255"
+
+auth:
+  token_ttl_seconds: 3600
+  token_rotation: automatic
+  passphrase_required: true
+  passphrase_max_attempts: 3
+  passphrase_backoff_strategy: exponential
+  second_factor: file_token
+
+logging:
+  level: warning
+  max_file_size_mb: 20
+  backup_count: 10
+  sanitize_paths: true
+  sanitize_content: true
+  content_max_chars: 0
+  paranoid_mode: true
+
+audit:
+  enabled: true
+  append_only: true
+  hash_chain: true
+  daily_seal: true
+  export_format: signed_csv
+
+rate_limit:
+  queries_per_minute: 30
+  queries_per_hour: 1000
+  burst_size: 5
+  circuit_breaker_timeouts: 2
+  query_timeout_seconds: 2.0
+
+anomaly_detection:
+  enabled: true
+  zscore_threshold: 2.0
+  distinct_queries_window: 300
+  distinct_queries_max: 50
+  action_on_detection: block_token
+
+integrity:
+  check_on_startup: full
+  check_interval_hours: 6
+  memory_locked_pages: true
+
+llm_local:
+  allowed: true
+  require_signed_manifest: true
+  allowed_models:
+    - "qwen2.5-1.5b-instruct-q5-signed"
+    - "phi-3-mini-q4-signed"
+  max_ram_mb: 3072
+  gpu_allowed: false
+
+golden_tests:
+  run_on_startup: true
+  run_interval_hours: 6
+  regression_threshold_percent: 5
+  block_on_regression: true
+
+backups:
+  enabled: true
+  encryption: signed
+  interval_hours: 12
+  retention_count: 14
+
+telemetry:
+  enabled: false
+  anonymous: false
+  endpoint: null
+
+ui:
+  show_audit_tab: true
+  show_compliance_export: true
+  allow_profile_downgrade: true
+  require_passphrase_for_downgrade: true
+
+slo:
+  query_p50_ms: 280
+  query_p95_ms: 500
+  query_p99_ms: 800
+  startup_cold_seconds: 5.0
+  ram_steady_mb: 1100
+  indexing_files_per_second: 40

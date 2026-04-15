@@ -1,0 +1,111 @@
+profile_name: basic
+profile_version: 1
+schema_version: "1.0"
+description: "Velocidad y simplicidad para desarrollo individual"
+
+crypto:
+  master_key_source:
+    type: os_keyring
+    kdf: none
+  cipher: aes_256_gcm
+  row_level_hmac: false
+  domain_separation: true
+  key_rotation_days: 0
+  secure_delete: os_remove
+
+transport:
+  ipc_native: true
+  http_loopback: true
+  http_port_range: [8888, 8898]
+  cors_allowed_origins: ["http://localhost"]
+  require_hmac_body: false
+  require_nonce: false
+  require_timestamp: false
+  timestamp_skew_seconds: 300
+
+network:
+  external_allowed: true
+  allowlist_domains: ["huggingface.co", "github.com"]
+  ip_pinning: false
+  air_gap_verify: false
+
+auth:
+  token_ttl_seconds: 2592000
+  token_rotation: manual
+  passphrase_required: false
+  passphrase_max_attempts: 10
+  passphrase_backoff_strategy: linear
+  second_factor: none
+
+logging:
+  level: info
+  max_file_size_mb: 5
+  backup_count: 3
+  sanitize_paths: false
+  sanitize_content: false
+  content_max_chars: 200
+  paranoid_mode: false
+
+audit:
+  enabled: true
+  append_only: false
+  hash_chain: false
+  daily_seal: false
+  export_format: csv
+
+rate_limit:
+  queries_per_minute: 300
+  queries_per_hour: 10000
+  burst_size: 20
+  circuit_breaker_timeouts: 5
+  query_timeout_seconds: 5.0
+
+anomaly_detection:
+  enabled: false
+  zscore_threshold: 3.0
+  distinct_queries_window: 600
+  distinct_queries_max: 200
+  action_on_detection: log
+
+integrity:
+  check_on_startup: quick
+  check_interval_hours: 0
+  memory_locked_pages: false
+
+llm_local:
+  allowed: true
+  require_signed_manifest: false
+  allowed_models: ["*"]
+  max_ram_mb: 2048
+  gpu_allowed: true
+
+golden_tests:
+  run_on_startup: false
+  run_interval_hours: 0
+  regression_threshold_percent: 20
+  block_on_regression: false
+
+backups:
+  enabled: false
+  encryption: none
+  interval_hours: 0
+  retention_count: 0
+
+telemetry:
+  enabled: false
+  anonymous: true
+  endpoint: null
+
+ui:
+  show_audit_tab: false
+  show_compliance_export: false
+  allow_profile_downgrade: true
+  require_passphrase_for_downgrade: false
+
+slo:
+  query_p50_ms: 80
+  query_p95_ms: 150
+  query_p99_ms: 300
+  startup_cold_seconds: 2.0
+  ram_steady_mb: 500
+  indexing_files_per_second: 60

@@ -1,0 +1,120 @@
+profile_name: enterprise
+profile_version: 1
+schema_version: "1.0"
+description: "Equilibrio profesional para equipos y PYMES"
+
+crypto:
+  master_key_source:
+    type: keyring_plus_passphrase
+    kdf: argon2id
+    kdf_params:
+      memory_kb: 32768
+      iterations: 2
+      parallelism: 2
+      salt_bytes: 16
+  cipher: aes_256_gcm
+  row_level_hmac: false
+  domain_separation: true
+  key_rotation_days: 90
+  secure_delete: overwrite_1pass
+
+transport:
+  ipc_native: true
+  http_loopback: true
+  http_port_range: [8888, 8898]
+  cors_allowed_origins: []
+  require_hmac_body: true
+  require_nonce: false
+  require_timestamp: true
+  timestamp_skew_seconds: 60
+
+network:
+  external_allowed: true
+  allowlist_domains: []
+  ip_pinning: false
+  air_gap_verify: false
+
+auth:
+  token_ttl_seconds: 86400
+  token_rotation: automatic
+  passphrase_required: false
+  passphrase_max_attempts: 5
+  passphrase_backoff_strategy: exponential
+  second_factor: none
+
+logging:
+  level: info
+  max_file_size_mb: 10
+  backup_count: 5
+  sanitize_paths: true
+  sanitize_content: true
+  content_max_chars: 40
+  paranoid_mode: false
+
+audit:
+  enabled: true
+  append_only: true
+  hash_chain: true
+  daily_seal: false
+  export_format: signed_csv
+
+rate_limit:
+  queries_per_minute: 60
+  queries_per_hour: 2000
+  burst_size: 10
+  circuit_breaker_timeouts: 3
+  query_timeout_seconds: 3.0
+
+anomaly_detection:
+  enabled: true
+  zscore_threshold: 2.5
+  distinct_queries_window: 600
+  distinct_queries_max: 150
+  action_on_detection: warn
+
+integrity:
+  check_on_startup: full
+  check_interval_hours: 24
+  memory_locked_pages: false
+
+llm_local:
+  allowed: true
+  require_signed_manifest: true
+  allowed_models:
+    - "qwen2.5-0.5b-instruct-q5"
+    - "qwen2.5-1.5b-instruct-q5"
+    - "phi-3-mini-q4"
+    - "gemma-2-2b-q5"
+  max_ram_mb: 3072
+  gpu_allowed: false
+
+golden_tests:
+  run_on_startup: true
+  run_interval_hours: 12
+  regression_threshold_percent: 10
+  block_on_regression: false
+
+backups:
+  enabled: true
+  encryption: secondary_key
+  interval_hours: 24
+  retention_count: 7
+
+telemetry:
+  enabled: false
+  anonymous: true
+  endpoint: null
+
+ui:
+  show_audit_tab: true
+  show_compliance_export: true
+  allow_profile_downgrade: true
+  require_passphrase_for_downgrade: true
+
+slo:
+  query_p50_ms: 150
+  query_p95_ms: 280
+  query_p99_ms: 450
+  startup_cold_seconds: 3.0
+  ram_steady_mb: 750
+  indexing_files_per_second: 50

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Oraculo McComics v4.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2563EB;--cyan:#38BDF8;--purple:#A855F7;
+  --bg-dark:#0F172A;--bg-card:rgba(15,23,42,0.7);
+  --text:#E2E8F0;--text-dim:#94A3B8;--text-bright:#F8FAFC;
+  --glass:rgba(255,255,255,0.05);--glass-border:rgba(255,255,255,0.1);
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --green:#22C55E;--red:#EF4444;--yellow:#F59E0B;
+}
+html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg-dark);color:var(--text);overflow:hidden}
+body{display:flex;flex-direction:column}
+.bg-mesh{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 20% 50%,rgba(37,99,235,0.15),transparent 50%),
+             radial-gradient(ellipse at 80% 20%,rgba(168,85,247,0.1),transparent 50%),
+             radial-gradient(ellipse at 50% 80%,rgba(56,189,248,0.08),transparent 50%)}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;
+  background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);z-index:10;position:relative}
+.header h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .version{font-size:11px;color:var(--text-dim);margin-left:8px}
+.profile-btns{display:flex;gap:6px}
+.profile-btn{padding:6px 14px;border:1px solid var(--glass-border);border-radius:20px;
+  background:var(--glass);color:var(--text-dim);font-size:12px;cursor:pointer;transition:all .2s}
+.profile-btn:hover{border-color:var(--cyan);color:var(--text)}
+.profile-btn.active{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border-color:transparent;font-weight:600}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#22C55E;vertical-align:middle}
+.status-dot.offline{background:#EF4444}
+
+/* TABS */
+.tabs{display:flex;gap:2px;padding:8px 20px 0;background:transparent;z-index:10;position:relative;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px 8px 0 0;background:var(--glass);backdrop-filter:blur(10px);
+  border:1px solid transparent;border-bottom:none;color:var(--text-dim);font-size:13px;cursor:pointer;transition:all .2s}
+.tab:hover{color:var(--text);background:rgba(255,255,255,0.08)}
+.tab.active{color:var(--cyan);background:var(--bg-card);border-color:var(--glass-border);font-weight:600}
+
+/* MAIN CONTENT */
+.content{flex:1;overflow:hidden;position:relative;z-index:5}
+.panel{display:none;height:100%;overflow-y:auto;padding:20px;animation:fadeIn .25s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* GLASS CARDS */
+.card{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin-bottom:12px;color:var(--cyan)}
+.card h3{font-size:14px;margin-bottom:8px;color:var(--text-bright)}
+
+/* QUERY */
+.search-box{display:flex;gap:8px;margin-bottom:16px}
+.search-input{flex:1;padding:12px 16px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);
+  border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--cyan)}
+.search-input::placeholder{color:var(--text-dim)}
+.btn{padding:10px 20px;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn-secondary{background:var(--glass);border:1px solid var(--glass-border);color:var(--text)}
+.btn-secondary:hover{border-color:var(--cyan)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-danger{background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.3);color:#EF4444}
+.btn-danger:hover{background:rgba(239,68,68,0.3)}
+.btn-success{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.3);color:#22C55E}
+.btn-success:hover{background:rgba(34,197,94,0.3)}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;filter:none}
+
+/* RESULTS */
+.result-item{padding:14px;margin-bottom:8px;background:rgba(0,0,0,0.2);border-radius:8px;border-left:3px solid var(--blue);transition:all .2s}
+.result-item:hover{background:rgba(0,0,0,0.3);border-left-color:var(--cyan)}
+.result-item .file{font-size:12px;color:var(--cyan);font-family:'Cascadia Code','Fira Code',monospace}
+.result-item .snippet{font-size:13px;margin-top:6px;color:var(--text-dim);font-family:'Cascadia Code','Fira Code',monospace;white-space:pre-wrap;max-height:120px;overflow:hidden}
+.result-item .meta{display:flex;gap:12px;margin-top:6px;font-size:11px;color:var(--text-dim);align-items:center;flex-wrap:wrap}
+.trust-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.trust-1{background:rgba(34,197,94,0.2);color:#22C55E}
+.trust-2{background:rgba(56,189,248,0.2);color:var(--cyan)}
+.trust-3{background:rgba(148,163,184,0.2);color:var(--text-dim)}
+
+/* INDEX */
+.path-list{list-style:none;max-height:200px;overflow-y:auto}
+.path-list li{padding:8px 10px;border-bottom:1px solid var(--glass-border);font-size:13px;font-family:monospace;color:var(--text-dim);display:flex;align-items:center;justify-content:space-between}
+.path-list li .path-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.path-list li .path-remove{cursor:pointer;color:var(--red);font-size:16px;margin-left:8px;padding:0 4px;opacity:0.6;transition:opacity .2s}
+.path-list li .path-remove:hover{opacity:1}
+.progress-bar{height:6px;background:rgba(0,0,0,0.3);border-radius:3px;overflow:hidden;margin-top:10px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:3px;transition:width .3s;width:0%}
+
+/* STATUS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.stat-item{text-align:center;padding:16px}
+.stat-value{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:12px;color:var(--text-dim);margin-top:4px}
+
+/* MODEL */
+.model-card{display:flex;align-items:center;gap:16px;padding:16px}
+.model-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0}
+.model-info{flex:1}
+.model-info h3{margin:0;font-size:15px;color:var(--text-bright)}
+.model-info p{margin:2px 0 0;font-size:12px;color:var(--text-dim)}
+.model-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--glass-border);gap:12px}
+.model-row:last-child{border-bottom:none}
+.model-row-info{flex:1;min-width:0}
+.model-row-info .model-row-name{font-size:14px;color:var(--text-bright);font-weight:600}
+.model-row-info .model-row-desc{font-size:11px;color:var(--text-dim);margin-top:2px}
+.model-row-info .model-row-caps{font-size:10px;margin-top:4px;line-height:1.5}
+.model-row-info .model-row-caps .cap-good{color:var(--green)}
+.model-row-info .model-row-caps .cap-bad{color:var(--red);opacity:0.7}
+.model-row-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.model-downloaded{color:var(--green);font-size:18px;font-weight:700}
+.model-dl-progress{width:120px}
+.model-dl-progress .progress-bar{height:4px;margin:0}
+.model-dl-progress .dl-info{font-size:10px;color:var(--text-dim);margin-top:3px;text-align:center}
+
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--glass-border);gap:12px}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px}
+.setting-desc{font-size:11px;color:var(--text-dim)}
+.toggle{width:40px;height:22px;background:#475569;border-radius:11px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--blue)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+select.setting-select{padding:6px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:6px;color:var(--text);font-size:13px}
+
+/* FEEDBACK */
+.feedback-btns{display:flex;gap:8px;margin-top:8px}
+.fb-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fb-btn:hover{transform:scale(1.15)}
+.fb-btn.positive:hover{border-color:#22C55E;color:#22C55E}
+.fb-btn.negative:hover{border-color:#EF4444;color:#EF4444}
+
+/* LOG */
+.log-area{background:rgba(0,0,0,0.4);border-radius:8px;padding:12px;font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;color:var(--text-dim);
+  max-height:400px;overflow-y:auto;white-space:pre-wrap;line-height:1.6}
+.log-entry{margin-bottom:2px}
+.log-entry .ts{color:#64748B}
+.log-entry.error{color:#EF4444}
+.log-entry.warn{color:#F59E0B}
+.log-entry.info{color:var(--cyan)}
+
+/* COMPLIANCE */
+.compliance-grid{display:flex;flex-direction:column;gap:8px}
+.compliance-check{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,0,0,0.2);border-radius:8px;border-left:3px solid var(--glass-border);transition:all .2s}
+.compliance-check.pass{border-left-color:var(--green)}
+.compliance-check.fail{border-left-color:var(--red)}
+.compliance-check.pending{border-left-color:var(--yellow)}
+.compliance-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.compliance-check.pass .compliance-icon{color:var(--green)}
+.compliance-check.fail .compliance-icon{color:var(--red)}
+.compliance-check.pending .compliance-icon{color:var(--yellow)}
+.compliance-text{flex:1}
+.compliance-text .comp-name{font-size:13px;color:var(--text-bright);font-weight:600}
+.compliance-text .comp-desc{font-size:11px;color:var(--text-dim);margin-top:2px}
+
+/* TRAINING */
+.train-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.train-stat{text-align:center;padding:14px;background:rgba(0,0,0,0.2);border-radius:8px}
+.train-stat .ts-value{font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.train-stat .ts-label{font-size:11px;color:var(--text-dim);margin-top:4px}
+.data-path-box{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:12px}
+.data-path-box .path-display{flex:1;font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.disclaimer-box{padding:14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--yellow);line-height:1.6;margin-top:12px}
+
+/* FOOTER */
+.footer{padding:8px 20px;font-size:11px;color:var(--text-dim);text-align:center;
+  background:var(--glass);border-top:1px solid var(--glass-border);z-index:10;position:relative}
+.footer a{color:var(--cyan);text-decoration:none}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2)}
+
+/* LOADING */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--glass-border);
+  border-top-color:var(--cyan);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <span class="status-dot" id="statusDot"></span>
+    <h1>El Oraculo McComics</h1>
+    <span class="version">v4.0</span>
+  </div>
+  <div class="profile-btns">
+    <button class="profile-btn active" data-profile="basic" onclick="switchProfile('basic')">Basic</button>
+    <button class="profile-btn" data-profile="enterprise" onclick="switchProfile('enterprise')">Enterprise</button>
+    <button class="profile-btn" data-profile="banking" onclick="switchProfile('banking')">Banking</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" data-tab="query" onclick="openTab('query')">Buscar</div>
+  <div class="tab" data-tab="index" onclick="openTab('index')">Indexar</div>
+  <div class="tab" data-tab="training" onclick="openTab('training')">Entrenamiento</div>
+  <div class="tab" data-tab="status" onclick="openTab('status')">Estado</div>
+  <div class="tab" data-tab="model" onclick="openTab('model')">Modelo</div>
+  <div class="tab" data-tab="symbols" onclick="openTab('symbols')">Simbolos</div>
+  <div class="tab" data-tab="compliance" onclick="openTab('compliance')">Compliance</div>
+  <div class="tab" data-tab="settings" onclick="openTab('settings')">Config</div>
+  <div class="tab" data-tab="log" onclick="openTab('log')">Log</div>
+  <div class="tab" data-tab="about" onclick="openTab('about')">Acerca de</div>
+</div>
+
+<!-- CONTENT PANELS -->
+<div class="content">
+
+  <!-- 1. BUSCAR -->
+  <div class="panel active" id="panel-query">
+    <div class="card">
+      <h2>Busqueda Inteligente</h2>
+      <div class="search-box">
+        <input type="text" class="search-input" id="queryInput" placeholder="Buscar en el codigo indexado..."
+               onkeydown="if(event.key==='Enter')doQuery()">
+        <button class="btn btn-primary" onclick="doQuery()">Buscar</button>
+      </div>
+      <div id="queryStatus" class="hidden" style="font-size:12px;color:var(--text-dim);margin-bottom:8px">
+        <span class="spinner"></span> Buscando...
+      </div>
+      <div id="queryMeta" class="hidden" style="font-size:12px;color:var(--text-dim);margin-bottom:12px"></div>
+    </div>
+    <div id="queryResults"></div>
+  </div>
+
+  <!-- 2. INDEXAR -->
+  <div class="panel" id="panel-index">
+    <div class="card">
+      <h2>Indexacion de Archivos</h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Agrega directorios o archivos al indice para habilitar busqueda inteligente.</p>
+      <div class="data-path-box">
+        <span style="font-size:12px;color:var(--text-dim)">Almacenamiento:</span>
+        <span class="path-display" id="indexStoragePath">~/.oraculo/index/</span>
+        <button class="btn btn-secondary btn-sm" onclick="openDataFolder()" title="Abrir carpeta de datos">Abrir carpeta</button>
+      </div>
+      <div class="search-box">
+        <input type="text" class="search-input" id="indexPathInput" placeholder="Ruta del directorio o archivo...">
+        <button class="btn btn-secondary" onclick="addIndexPath()">Agregar</button>
+        <button class="btn btn-primary" onclick="startIndex()">Indexar</button>
+      </div>
+      <ul class="path-list" id="indexPaths"></ul>
+      <div class="progress-bar" id="indexProgress" style="margin-top:12px">
+        <div class="progress-fill" id="indexFill"></div>
+      </div>
+      <div id="indexStatus" style="font-size:12px;color:var(--text-dim);margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3>Opciones</h3>
+      <label style="font-size:13px;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="indexForce"> Forzar re-indexacion (ignorar cache)
+      </label>
+    </div>
+  </div>
+
+  <!-- 3. ENTRENAMIENTO -->
+  <div class="panel" id="panel-training">
+    <div class="card">
+      <h2>Entrenamiento del Oraculo</h2>
+      <div class="setting-row" style="border-bottom:none;padding-top:0">
+        <div>
+          <span class="setting-label">Auto-entrenamiento</span>
+          <div class="setting-desc">Vigila las carpetas indexadas y actualiza automaticamente al detectar cambios</div>
+        </div>
+        <div class="toggle" id="toggleAutoTrain" onclick="toggleAutoTraining(this)"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Ruta de almacenamiento de datos</h3>
+      <div class="data-path-box" style="margin-top:8px">
+        <span class="path-display" id="trainingDataPath">~/.oraculo/index/</span>
+        <button class="btn btn-secondary btn-sm" onclick="changeDataDir()">Cambiar ruta de datos</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Estadisticas de indexacion</h3>
+      <div class="train-stat-grid">
+        <div class="train-stat">
+          <div class="ts-value" id="trainFiles">0</div>
+          <div class="ts-label">Archivos indexados</div>
+        </div>
+        <div class="train-stat">
+          <div class="ts-value" id="trainFragments">0</div>
+          <div class="ts-label">Fragmentos creados</div>
+        </div>
+        <div class="train-stat">
+          <div class="ts-value" id="trainLastTime">--</div>
+          <div class="ts-label">Ultima indexacion</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="retrainNow()" style="width:100%">Re-entrenar ahora</button>
+      <div id="retrainStatus" style="font-size:12px;color:var(--text-dim);margin-top:8px;text-align:center"></div>
+      <div class="progress-bar" id="retrainProgress" style="margin-top:8px">
+        <div class="progress-fill" id="retrainFill"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="disclaimer-box">
+        <strong>Importante:</strong> El Oraculo aprende la ESTRUCTURA de tu codigo (funciones, clases, dependencias, patrones). NO entiende la logica de negocio — eso sigue siendo trabajo del experto humano. La indexacion crea un mapa semantico de tu codebase que permite busquedas inteligentes, pero no reemplaza el criterio tecnico del desarrollador.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. ESTADO -->
+  <div class="panel" id="panel-status">
+    <div class="card">
+      <h2>Estado del Sistema</h2>
+      <div class="stat-grid">
+        <div class="stat-item card"><div class="stat-value" id="statFiles">0</div><div class="stat-label">Archivos Indexados</div></div>
+        <div class="stat-item card"><div class="stat-value" id="statFragments">0</div><div class="stat-label">Fragmentos</div></div>
+        <div class="stat-item card"><div class="stat-value" id="statProfile">--</div><div class="stat-label">Perfil Activo</div></div>
+        <div class="stat-item card"><div class="stat-value" id="statModel">--</div><div class="stat-label">Modelo LLM</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Informacion del Servidor</h3>
+      <div id="serverInfo" style="font-size:13px;color:var(--text-dim)">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- 5. MODELO -->
+  <div class="panel" id="panel-model">
+    <div class="card">
+      <h2>Modelo de IA</h2>
+      <div class="model-card">
+        <div class="model-icon">AI</div>
+        <div class="model-info">
+          <h3 id="modelName">Sin modelo cargado</h3>
+          <p id="modelDetails">Configure un modelo LLM para habilitar busqueda inteligente avanzada</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Almacenamiento de modelos</h3>
+      <div class="data-path-box" style="margin-top:8px">
+        <span style="font-size:12px;color:var(--text-dim)">Ubicacion:</span>
+        <span class="path-display">~/.oraculo/models/</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Modelos Disponibles</h3>
+      <div style="margin-top:8px">
+        <div class="model-row" id="model-row-qwen15">
+          <div class="model-row-info">
+            <div class="model-row-name">Qwen 2.5 Coder 1.5B</div>
+            <div class="model-row-desc">~1.2 GB RAM — Para equipos con recursos limitados</div>
+            <div class="model-row-caps">
+              <span class="cap-good">Bueno para: reranking, expansion de queries</span><br>
+              <span class="cap-bad">No bueno para: analisis profundo de logica compleja</span>
+            </div>
+          </div>
+          <div class="model-row-actions">
+            <span class="model-downloaded hidden" id="dl-check-qwen15" title="Descargado">&#10003;</span>
+            <div class="model-dl-progress hidden" id="dl-progress-qwen15">
+              <div class="progress-bar"><div class="progress-fill" id="dl-fill-qwen15"></div></div>
+              <div class="dl-info" id="dl-info-qwen15">0% — calculando...</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="dl-btn-qwen15" onclick="downloadModel('qwen2.5-coder:1.5b-instruct-q4_K_M','qwen15')">Descargar</button>
+            <button class="btn btn-secondary btn-sm" onclick="selectModel('qwen2.5-coder:1.5b-instruct-q4_K_M')">Seleccionar</button>
+          </div>
+        </div>
+        <div class="model-row" id="model-row-qwen3">
+          <div class="model-row-info">
+            <div class="model-row-name">Qwen 2.5 Coder 3B (Recomendado)</div>
+            <div class="model-row-desc">~2.1 GB RAM — Mejor equilibrio calidad/rendimiento</div>
+            <div class="model-row-caps">
+              <span class="cap-good">Bueno para: reranking, expansion, comprension contextual</span><br>
+              <span class="cap-bad">No bueno para: razonamiento multi-paso sobre logica de negocio</span>
+            </div>
+          </div>
+          <div class="model-row-actions">
+            <span class="model-downloaded hidden" id="dl-check-qwen3" title="Descargado">&#10003;</span>
+            <div class="model-dl-progress hidden" id="dl-progress-qwen3">
+              <div class="progress-bar"><div class="progress-fill" id="dl-fill-qwen3"></div></div>
+              <div class="dl-info" id="dl-info-qwen3">0% — calculando...</div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="dl-btn-qwen3" onclick="downloadModel('qwen2.5-coder:3b-instruct-q4_K_M','qwen3')">Descargar</button>
+            <button class="btn btn-primary btn-sm" onclick="selectModel('qwen2.5-coder:3b-instruct-q4_K_M')">Seleccionar</button>
+          </div>
+        </div>
+        <div class="model-row" id="model-row-qwen7">
+          <div class="model-row-info">
+            <div class="model-row-name">Qwen 2.5 Coder 7B</div>
+            <div class="model-row-desc">~4.5 GB RAM — Maxima calidad de comprension</div>
+            <div class="model-row-caps">
+              <span class="cap-good">Bueno para: reranking, expansion, comprension profunda, patrones</span><br>
+              <span class="cap-bad">No bueno para: sustituir un LLM grande para razonamiento general</span>
+            </div>
+          </div>
+          <div class="model-row-actions">
+            <span class="model-downloaded hidden" id="dl-check-qwen7" title="Descargado">&#10003;</span>
+            <div class="model-dl-progress hidden" id="dl-progress-qwen7">
+              <div class="progress-bar"><div class="progress-fill" id="dl-fill-qwen7"></div></div>
+              <div class="dl-info" id="dl-info-qwen7">0% — calculando...</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="dl-btn-qwen7" onclick="downloadModel('qwen2.5-coder:7b-instruct-q4_K_M','qwen7')">Descargar</button>
+            <button class="btn btn-secondary btn-sm" onclick="selectModel('qwen2.5-coder:7b-instruct-q4_K_M')">Seleccionar</button>
+          </div>
+        </div>
+        <div class="model-row" id="model-row-phi3">
+          <div class="model-row-info">
+            <div class="model-row-name">Phi-3.5 Mini 3.8B</div>
+            <div class="model-row-desc">~2.4 GB RAM — Alternativa Microsoft</div>
+            <div class="model-row-caps">
+              <span class="cap-good">Bueno para: expansion de queries, tareas de texto generales</span><br>
+              <span class="cap-bad">No bueno para: comprension especifica de codigo legacy (COBOL, RPG)</span>
+            </div>
+          </div>
+          <div class="model-row-actions">
+            <span class="model-downloaded hidden" id="dl-check-phi3" title="Descargado">&#10003;</span>
+            <div class="model-dl-progress hidden" id="dl-progress-phi3">
+              <div class="progress-bar"><div class="progress-fill" id="dl-fill-phi3"></div></div>
+              <div class="dl-info" id="dl-info-phi3">0% — calculando...</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="dl-btn-phi3" onclick="downloadModel('phi-3.5-mini:3.8b-instruct-q4_K_M','phi3')">Descargar</button>
+            <button class="btn btn-secondary btn-sm" onclick="selectModel('phi-3.5-mini:3.8b-instruct-q4_K_M')">Seleccionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Provider</h3>
+      <div class="setting-row">
+        <div><span class="setting-label">Tipo de provider</span></div>
+        <select class="setting-select" id="providerType" onchange="changeProvider()">
+          <option value="llama_cpp">llama.cpp (Local GGUF)</option>
+          <option value="ollama">Ollama (API Local)</option>
+          <option value="openai">API Compatible OpenAI</option>
+        </select>
+      </div>
+      <div id="providerConfig"></div>
+    </div>
+  </div>
+
+  <!-- 6. SIMBOLOS -->
+  <div class="panel" id="panel-symbols">
+    <div class="card">
+      <h2>Explorador de Simbolos</h2>
+      <div class="search-box">
+        <input type="text" class="search-input" id="symbolSearch" placeholder="Buscar funcion, clase, variable...">
+        <button class="btn btn-primary" onclick="searchSymbols()">Buscar</button>
+      </div>
+    </div>
+    <div id="symbolResults"></div>
+  </div>
+
+  <!-- 7. COMPLIANCE -->
+  <div class="panel" id="panel-compliance">
+    <div class="card">
+      <h2>Verificacion de Compliance</h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">Estado de cumplimiento del perfil activo: <strong id="compProfileName" style="color:var(--cyan)">Basic</strong></p>
+      <div class="compliance-grid" id="complianceGrid">
+        <div class="compliance-check pending">
+          <div class="compliance-icon">&#9679;</div>
+          <div class="compliance-text">
+            <div class="comp-name">Cargando verificaciones...</div>
+            <div class="comp-desc">Ejecute una verificacion o cambie al perfil Banking para ver las 7 verificaciones de seguridad</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="runComplianceCheck()">Verificar ahora</button>
+        <span id="complianceStatus" style="font-size:12px;color:var(--text-dim);align-self:center"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Verificaciones Banking (7 controles)</h3>
+      <p style="font-size:12px;color:var(--text-dim);line-height:1.7;margin-top:4px">
+        1. <strong>Air-Gap</strong> — Sin conexion a internet durante operacion<br>
+        2. <strong>Audit Chain</strong> — Cadena de auditoria inmutable para cada operacion<br>
+        3. <strong>Crypto-Shred</strong> — Destruccion criptografica de datos al finalizar<br>
+        4. <strong>Token TTL</strong> — Tiempo de vida limitado para tokens de sesion<br>
+        5. <strong>No External Providers</strong> — Cero dependencia de servicios externos<br>
+        6. <strong>HMAC Verification</strong> — Integridad HMAC-SHA256 en cada fragmento<br>
+        7. <strong>No HTTP</strong> — Sin trafico HTTP plano, solo canales seguros
+      </p>
+      <div class="disclaimer-box" style="margin-top:12px">
+        <strong>Aviso importante:</strong> Esta verificacion es interna y refleja el estado de configuracion del sistema. Para certificacion Banking profesional se requiere auditoria externa por firma de seguridad reconocida. Este panel NO reemplaza un pentest ni una auditoria SOC 2 / ISO 27001.
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. CONFIG -->
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <h2>Configuracion</h2>
+      <div class="setting-row">
+        <div><span class="setting-label">Query Expansion (LLM)</span><div class="setting-desc">Expandir queries automaticamente con variantes generadas por IA</div></div>
+        <div class="toggle on" id="toggleExpand" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-row">
+        <div><span class="setting-label">Re-ranking (LLM)</span><div class="setting-desc">Re-ordenar resultados usando scoring por IA</div></div>
+        <div class="toggle on" id="toggleRerank" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-row">
+        <div><span class="setting-label">Auto-indexacion</span><div class="setting-desc">Indexar archivos automaticamente al detectar cambios</div></div>
+        <div class="toggle" id="toggleWatch" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-row">
+        <div><span class="setting-label">Token Budget</span><div class="setting-desc">Presupuesto maximo de tokens por query</div></div>
+        <select class="setting-select" id="tokenBudget">
+          <option value="4096">4K tokens</option>
+          <option value="8192" selected>8K tokens</option>
+          <option value="16384">16K tokens</option>
+          <option value="32768">32K tokens</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><span class="setting-label">Maximo de resultados</span></div>
+        <select class="setting-select" id="maxResults">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. LOG -->
+  <div class="panel" id="panel-log">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h2>Log del Sistema</h2>
+        <button class="btn btn-secondary btn-sm" onclick="clearLog()">Limpiar</button>
+      </div>
+      <div class="log-area" id="logArea">
+        <div class="log-entry info"><span class="ts">[--:--:--]</span> Sistema listo. Esperando acciones...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. ACERCA DE -->
+  <div class="panel" id="panel-about">
+    <div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:48px;margin-bottom:16px;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900">El Oraculo</div>
+      <div style="font-size:16px;color:var(--text-dim);margin-bottom:24px">McComics v4.0 — Motor de Inteligencia de Codigo Local</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.8">
+        Busqueda semantica + BM25 + vectores + LLM local<br>
+        60+ lenguajes incluyendo COBOL, RPG, JCL, PL/I, Natural<br>
+        3 perfiles de seguridad: Basic, Enterprise, Banking<br>
+        100% offline — Tu codigo nunca sale de tu maquina
+      </div>
+    </div>
+    <div class="card">
+      <h3>Licencia</h3>
+      <div style="font-size:13px;color:var(--text-dim);line-height:2;margin-top:4px">
+        <strong style="color:var(--cyan)">Community Edition</strong> — Licencia BSL 1.1 (Business Source License)<br>
+        Uso libre para desarrollo, investigacion, educacion y uso interno. Se convierte en Apache 2.0 en 2030.<br><br>
+        <strong style="color:var(--purple)">Enterprise Edition</strong> — Licencia comercial ($29-99/mes)<br>
+        Uso comercial completo, soporte prioritario, integraciones avanzadas.<br><br>
+        <strong style="color:var(--yellow)">Banking Edition</strong> — Licencia on-premise (desde $5,000)<br>
+        Air-gap, crypto-shred, audit chain, soporte 24/7, compliance certificable.<br><br>
+        <span style="font-size:11px">Para licencias Enterprise y Banking contactar: mccomicsservics@gmail.com</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Creditos</h3>
+      <div style="font-size:13px;color:var(--text-dim);line-height:2">
+        <strong>McComics Servicios Generales</strong> — Lima, Peru<br>
+        Web: www.grupomccomics.com<br>
+        Email: mccomicsservics@gmail.com<br>
+        WhatsApp: +51 903 553 019
+      </div>
+    </div>
+    <div class="card">
+      <h3>Tecnologias</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        <span class="trust-badge trust-2">Python 3.11+</span>
+        <span class="trust-badge trust-2">pywebview</span>
+        <span class="trust-badge trust-2">DuckDB</span>
+        <span class="trust-badge trust-2">SQLite FTS5</span>
+        <span class="trust-badge trust-2">llama.cpp</span>
+        <span class="trust-badge trust-2">Ollama</span>
+        <span class="trust-badge trust-1">Qwen 2.5 Coder</span>
+        <span class="trust-badge trust-3">HMAC-SHA256</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  McComics&reg; — Tecnologia funcional que mejora vidas | De Lima y Venezuela para el mundo
+</div>
+
+<script>
+/* ── State ── */
+const state = {
+  profile: 'basic',
+  indexPaths: [],
+  logs: [],
+  connected: false,
+  modelDownloads: {},
+  autoTraining: false,
+};
+
+/* ── Tabs ── */
+function openTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === name); });
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.toggle('active', p.id === 'panel-' + name); });
+  if (name === 'status') refreshStatus();
+  if (name === 'model') refreshModel();
+  if (name === 'training') refreshTraining();
+  if (name === 'compliance') refreshCompliance();
+}
+
+/* ── Profile Switching ── */
+async function switchProfile(name) {
+  document.querySelectorAll('.profile-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.profile === name); });
+  state.profile = name;
+  addLog('info', 'Cambiando perfil a: ' + name);
+  try {
+    var res = JSON.parse(await pywebview.api.switch_profile(name));
+    if (res.error) {
+      addLog('error', 'Error cambiando perfil: ' + (res.error || res.message));
+    } else {
+      addLog('info', 'Perfil activo: ' + name);
+    }
+  } catch (e) {
+    addLog('warn', 'Bridge no disponible, cambio local: ' + name);
+  }
+  var compProfileEl = document.getElementById('compProfileName');
+  if (compProfileEl) compProfileEl.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/* ── Query ── */
+async function doQuery() {
+  var q = document.getElementById('queryInput').value.trim();
+  if (!q) return;
+  var limit = parseInt(document.getElementById('maxResults').value);
+  document.getElementById('queryStatus').classList.remove('hidden');
+  document.getElementById('queryMeta').classList.add('hidden');
+  document.getElementById('queryResults').innerHTML = '';
+  addLog('info', 'Query: "' + q + '" (limit=' + limit + ')');
+  try {
+    var raw = await pywebview.api.query(q, limit);
+    var data = JSON.parse(raw);
+    document.getElementById('queryStatus').classList.add('hidden');
+    if (data.error) {
+      document.getElementById('queryResults').innerHTML = '<div class="card" style="color:#EF4444">Error: ' + escapeHtml(data.error) + '</div>';
+      addLog('error', 'Query error: ' + data.error);
+      return;
+    }
+    var frags = data.fragments || [];
+    var meta = document.getElementById('queryMeta');
+    meta.classList.remove('hidden');
+    meta.textContent = frags.length + ' resultados en ' + (data.assembly_time_ms || 0).toFixed(1) + 'ms';
+    renderResults(frags);
+    addLog('info', frags.length + ' resultados encontrados');
+  } catch (e) {
+    document.getElementById('queryStatus').classList.add('hidden');
+    document.getElementById('queryResults').innerHTML = '<div class="card" style="color:#F59E0B">Bridge no disponible. Inicie el servidor.</div>';
+    addLog('warn', 'Bridge no disponible: ' + e.message);
+  }
+}
+
+function renderResults(fragments) {
+  var container = document.getElementById('queryResults');
+  container.innerHTML = fragments.map(function(f, i) {
+    var trustClass = 'trust-' + (f.trust_tier || 3);
+    var trustLabel = f.trust_tier === 1 ? 'CANON' : f.trust_tier === 2 ? 'HIGH' : 'CTX';
+    return '<div class="result-item">' +
+      '<div class="file">' + escapeHtml(f.file_path || 'unknown') + '</div>' +
+      '<div class="snippet">' + escapeHtml((f.content || '').substring(0, 300)) + '</div>' +
+      '<div class="meta">' +
+        '<span class="trust-badge ' + trustClass + '">' + trustLabel + '</span>' +
+        '<span>Score: ' + (f.rrf_score || f.score || 0).toFixed(4) + '</span>' +
+        '<span>ID: ' + (f.fragment_id || '').substring(0, 8) + '</span>' +
+        '<div class="feedback-btns">' +
+          '<div class="fb-btn positive" onclick="sendFeedback(\'' + (f.fragment_id || '') + '\',true)" title="Relevante">+</div>' +
+          '<div class="fb-btn negative" onclick="sendFeedback(\'' + (f.fragment_id || '') + '\',false)" title="No relevante">-</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function sendFeedback(fragmentId, positive) {
+  addLog('info', 'Feedback ' + (positive ? 'positivo' : 'negativo') + ' para ' + fragmentId.substring(0, 8));
+}
+
+/* ── Index ── */
+function addIndexPath() {
+  var input = document.getElementById('indexPathInput');
+  var path = input.value.trim();
+  if (!path) return;
+  if (state.indexPaths.indexOf(path) !== -1) {
+    addLog('warn', 'Ruta ya existe en la lista: ' + path);
+    return;
+  }
+  state.indexPaths.push(path);
+  input.value = '';
+  renderPaths();
+  addLog('info', 'Ruta agregada: ' + path);
+}
+
+function removeIndexPath(index) {
+  var removed = state.indexPaths.splice(index, 1);
+  renderPaths();
+  addLog('info', 'Ruta removida: ' + removed[0]);
+}
+
+function renderPaths() {
+  var list = document.getElementById('indexPaths');
+  if (state.indexPaths.length === 0) {
+    list.innerHTML = '<li style="justify-content:center;color:var(--text-dim);font-style:italic;font-family:inherit">Sin carpetas indexadas. Agrega una ruta arriba.</li>';
+    return;
+  }
+  list.innerHTML = state.indexPaths.map(function(p, i) {
+    return '<li><span class="path-text">' + escapeHtml(p) + '</span><span class="path-remove" onclick="removeIndexPath(' + i + ')" title="Remover">&times;</span></li>';
+  }).join('');
+}
+
+async function startIndex() {
+  if (state.indexPaths.length === 0) {
+    addLog('warn', 'No hay rutas para indexar');
+    return;
+  }
+  var force = document.getElementById('indexForce').checked;
+  var status = document.getElementById('indexStatus');
+  var fill = document.getElementById('indexFill');
+  status.textContent = 'Indexando...';
+  fill.style.width = '30%';
+  addLog('info', 'Indexando ' + state.indexPaths.length + ' rutas (force=' + force + ')');
+  try {
+    var raw = await pywebview.api.index_paths(JSON.stringify(state.indexPaths));
+    var data = JSON.parse(raw);
+    fill.style.width = '100%';
+    if (data.error) {
+      status.textContent = 'Error: ' + data.error;
+      addLog('error', 'Index error: ' + data.error);
+    } else {
+      status.textContent = 'Completado: ' + data.processed + ' archivos, ' + data.fragments + ' fragmentos';
+      addLog('info', 'Indexacion completa: ' + data.processed + ' archivos');
+    }
+  } catch (e) {
+    fill.style.width = '0%';
+    status.textContent = 'Bridge no disponible';
+    addLog('warn', 'Bridge no disponible');
+  }
+}
+
+async function openDataFolder() {
+  try {
+    await pywebview.api.open_data_folder();
+    addLog('info', 'Abriendo carpeta de datos...');
+  } catch (e) {
+    addLog('warn', 'Funcion open_data_folder no disponible en el bridge');
+  }
+}
+
+/* ── Training ── */
+async function toggleAutoTraining(el) {
+  el.classList.toggle('on');
+  var enabled = el.classList.contains('on');
+  state.autoTraining = enabled;
+  addLog('info', 'Auto-entrenamiento: ' + (enabled ? 'activado' : 'desactivado'));
+  try {
+    var raw = await pywebview.api.toggle_auto_training(enabled);
+    var data = JSON.parse(raw);
+    if (data.error) {
+      addLog('error', 'Error en auto-entrenamiento: ' + data.error);
+      el.classList.toggle('on');
+      state.autoTraining = !enabled;
+    } else {
+      addLog('info', 'Auto-entrenamiento configurado: ' + (enabled ? 'ON' : 'OFF'));
+    }
+  } catch (e) {
+    addLog('warn', 'Funcion toggle_auto_training no disponible — cambio local solamente');
+  }
+}
+
+async function changeDataDir() {
+  addLog('info', 'Solicitando cambio de ruta de datos...');
+  try {
+    var raw = await pywebview.api.set_data_dir('');
+    var data = JSON.parse(raw);
+    if (data.error) {
+      addLog('error', 'Error cambiando ruta: ' + data.error);
+    } else {
+      var newPath = data.path || data.data_dir || '~/.oraculo/index/';
+      document.getElementById('trainingDataPath').textContent = newPath;
+      document.getElementById('indexStoragePath').textContent = newPath;
+      addLog('info', 'Ruta de datos cambiada a: ' + newPath);
+    }
+  } catch (e) {
+    addLog('warn', 'Funcion set_data_dir no disponible en el bridge');
+  }
+}
+
+async function retrainNow() {
+  addLog('info', 'Iniciando re-entrenamiento completo...');
+  var status = document.getElementById('retrainStatus');
+  var fill = document.getElementById('retrainFill');
+  status.textContent = 'Re-entrenando...';
+  fill.style.width = '20%';
+  try {
+    var raw = await pywebview.api.index_paths(JSON.stringify(state.indexPaths.length > 0 ? state.indexPaths : ['__RETRAIN_ALL__']));
+    var data = JSON.parse(raw);
+    fill.style.width = '100%';
+    if (data.error) {
+      status.textContent = 'Error: ' + data.error;
+      addLog('error', 'Re-entrenamiento error: ' + data.error);
+    } else {
+      status.textContent = 'Completado: ' + (data.processed || 0) + ' archivos, ' + (data.fragments || 0) + ' fragmentos';
+      addLog('info', 'Re-entrenamiento completo: ' + (data.processed || 0) + ' archivos procesados');
+      refreshTraining();
+    }
+  } catch (e) {
+    fill.style.width = '0%';
+    status.textContent = 'Bridge no disponible';
+    addLog('warn', 'Bridge no disponible para re-entrenamiento');
+  }
+}
+
+async function refreshTraining() {
+  try {
+    var raw = await pywebview.api.get_training_status();
+    var data = JSON.parse(raw);
+    document.getElementById('trainFiles').textContent = data.indexed_files || 0;
+    document.getElementById('trainFragments').textContent = data.fragments || 0;
+    document.getElementById('trainLastTime').textContent = data.last_indexation || '--';
+    if (data.data_dir) {
+      document.getElementById('trainingDataPath').textContent = data.data_dir;
+      document.getElementById('indexStoragePath').textContent = data.data_dir;
+    }
+    if (data.auto_training !== undefined) {
+      var toggleEl = document.getElementById('toggleAutoTrain');
+      if (data.auto_training && !toggleEl.classList.contains('on')) toggleEl.classList.add('on');
+      if (!data.auto_training && toggleEl.classList.contains('on')) toggleEl.classList.remove('on');
+      state.autoTraining = data.auto_training;
+    }
+  } catch (e) {
+    addLog('warn', 'Funcion get_training_status no disponible — estadisticas no actualizadas');
+  }
+}
+
+/* ── Status ── */
+async function refreshStatus() {
+  try {
+    var raw = await pywebview.api.get_status();
+    var data = JSON.parse(raw);
+    document.getElementById('statFiles').textContent = data.indexed_files || 0;
+    document.getElementById('statFragments').textContent = data.fragments || data.indexed_files || 0;
+    document.getElementById('statProfile').textContent = data.profile || '--';
+    document.getElementById('statModel').textContent = (data.model_info && data.model_info.name) || 'Ninguno';
+    document.getElementById('serverInfo').textContent = 'Perfil: ' + (data.profile || '--') + ' | Archivos: ' + (data.indexed_files || 0) + ' | Fragmentos: ' + (data.fragments || 0);
+    state.connected = true;
+    document.getElementById('statusDot').classList.remove('offline');
+  } catch (e) {
+    state.connected = false;
+    document.getElementById('statusDot').classList.add('offline');
+    document.getElementById('serverInfo').textContent = 'Sin conexion al backend';
+  }
+}
+
+/* ── Model ── */
+async function refreshModel() {
+  try {
+    var raw = await pywebview.api.get_model_info();
+    var data = JSON.parse(raw);
+    if (data.loaded !== false && data.name) {
+      document.getElementById('modelName').textContent = data.name;
+      document.getElementById('modelDetails').textContent = 'RAM: ' + (data.ram_gb || '?') + ' GB | Params: ' + (data.params || '?');
+    }
+    if (data.downloaded_models && Array.isArray(data.downloaded_models)) {
+      var modelMap = {
+        'qwen2.5-coder:1.5b-instruct-q4_K_M': 'qwen15',
+        'qwen2.5-coder:3b-instruct-q4_K_M': 'qwen3',
+        'qwen2.5-coder:7b-instruct-q4_K_M': 'qwen7',
+        'phi-3.5-mini:3.8b-instruct-q4_K_M': 'phi3'
+      };
+      data.downloaded_models.forEach(function(mid) {
+        var key = modelMap[mid];
+        if (key) {
+          var check = document.getElementById('dl-check-' + key);
+          if (check) check.classList.remove('hidden');
+        }
+      });
+    }
+  } catch (e) {}
+}
+
+function selectModel(modelId) {
+  addLog('info', 'Modelo seleccionado: ' + modelId);
+  document.getElementById('modelName').textContent = modelId;
+  document.getElementById('modelDetails').textContent = 'Pendiente de carga...';
+}
+
+async function downloadModel(modelId, uiKey) {
+  var btn = document.getElementById('dl-btn-' + uiKey);
+  var progressWrap = document.getElementById('dl-progress-' + uiKey);
+  var fill = document.getElementById('dl-fill-' + uiKey);
+  var info = document.getElementById('dl-info-' + uiKey);
+  var check = document.getElementById('dl-check-' + uiKey);
+
+  btn.disabled = true;
+  btn.textContent = 'Descargando...';
+  progressWrap.classList.remove('hidden');
+  fill.style.width = '0%';
+  info.textContent = '0% — iniciando descarga...';
+  addLog('info', 'Descargando modelo: ' + modelId);
+
+  try {
+    var raw = await pywebview.api.download_model(modelId);
+    var data = JSON.parse(raw);
+    if (data.error) {
+      addLog('error', 'Error descargando modelo: ' + data.error);
+      info.textContent = 'Error: ' + data.error;
+      btn.disabled = false;
+      btn.textContent = 'Reintentar';
+      return;
+    }
+    fill.style.width = '100%';
+    info.textContent = '100% — completado';
+    check.classList.remove('hidden');
+    btn.textContent = 'Descargado';
+    addLog('info', 'Modelo descargado exitosamente: ' + modelId);
+  } catch (e) {
+    addLog('warn', 'Funcion download_model no disponible — ' + e.message);
+    info.textContent = 'No disponible';
+    btn.disabled = false;
+    btn.textContent = 'Descargar';
+  }
+
+  /* Polling simulation for progress when bridge supports streaming */
+  if (state.modelDownloads[uiKey]) {
+    clearInterval(state.modelDownloads[uiKey]);
+  }
+}
+
+function updateDownloadProgress(uiKey, percent, speed, eta) {
+  var fill = document.getElementById('dl-fill-' + uiKey);
+  var info = document.getElementById('dl-info-' + uiKey);
+  if (fill) fill.style.width = percent + '%';
+  if (info) {
+    var text = percent + '%';
+    if (speed) text += ' — ' + speed;
+    if (eta) text += ' — ETA: ' + eta;
+    info.textContent = text;
+  }
+}
+
+function changeProvider() {
+  var type = document.getElementById('providerType').value;
+  addLog('info', 'Provider cambiado a: ' + type);
+}
+
+/* ── Symbols ── */
+function searchSymbols() {
+  var q = document.getElementById('symbolSearch').value.trim();
+  if (!q) return;
+  addLog('info', 'Busqueda de simbolos: ' + q);
+  document.getElementById('symbolResults').innerHTML = '<div class="card" style="color:var(--text-dim)">Funcion disponible cuando el indice este poblado.</div>';
+}
+
+/* ── Compliance ── */
+var bankingChecks = [
+  { id: 'air_gap', name: 'Air-Gap', desc: 'Sin conexion a internet durante operacion — aislamiento total de red' },
+  { id: 'audit_chain', name: 'Audit Chain', desc: 'Cadena de auditoria inmutable para cada operacion registrada' },
+  { id: 'crypto_shred', name: 'Crypto-Shred', desc: 'Destruccion criptografica de datos sensibles al finalizar sesion' },
+  { id: 'token_ttl', name: 'Token TTL', desc: 'Tokens de sesion con tiempo de vida limitado y auto-expiracion' },
+  { id: 'no_external', name: 'No External Providers', desc: 'Cero dependencia de APIs, servicios cloud o proveedores externos' },
+  { id: 'hmac', name: 'HMAC-SHA256', desc: 'Verificacion de integridad HMAC en cada fragmento indexado' },
+  { id: 'no_http', name: 'No HTTP', desc: 'Sin trafico HTTP plano — solo canales cifrados o locales' }
+];
+
+function renderComplianceChecks(results) {
+  var grid = document.getElementById('complianceGrid');
+  grid.innerHTML = bankingChecks.map(function(check) {
+    var result = results ? results[check.id] : null;
+    var statusClass = result === true ? 'pass' : result === false ? 'fail' : 'pending';
+    var icon = result === true ? '&#10003;' : result === false ? '&#10007;' : '&#9679;';
+    return '<div class="compliance-check ' + statusClass + '">' +
+      '<div class="compliance-icon">' + icon + '</div>' +
+      '<div class="compliance-text">' +
+        '<div class="comp-name">' + escapeHtml(check.name) + '</div>' +
+        '<div class="comp-desc">' + escapeHtml(check.desc) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function runComplianceCheck() {
+  var statusEl = document.getElementById('complianceStatus');
+  statusEl.innerHTML = '<span class="spinner"></span> Verificando...';
+  addLog('info', 'Ejecutando verificacion de compliance...');
+  try {
+    var raw = await pywebview.api.get_compliance();
+    var data = JSON.parse(raw);
+    if (data.error) {
+      addLog('error', 'Error en compliance: ' + data.error);
+      statusEl.textContent = 'Error: ' + data.error;
+      return;
+    }
+    var checks = data.checks || data;
+    renderComplianceChecks(checks);
+    var passed = 0;
+    var total = bankingChecks.length;
+    bankingChecks.forEach(function(c) { if (checks[c.id] === true) passed++; });
+    statusEl.textContent = passed + '/' + total + ' verificaciones pasadas';
+    addLog('info', 'Compliance: ' + passed + '/' + total + ' verificaciones pasadas');
+  } catch (e) {
+    addLog('warn', 'Funcion get_compliance no disponible en el bridge');
+    statusEl.textContent = 'No disponible — bridge no conectado';
+    renderComplianceChecks(null);
+  }
+}
+
+async function refreshCompliance() {
+  renderComplianceChecks(null);
+  var compProfileEl = document.getElementById('compProfileName');
+  if (compProfileEl) compProfileEl.textContent = state.profile.charAt(0).toUpperCase() + state.profile.slice(1);
+}
+
+/* ── Settings ── */
+function toggleSetting(el) {
+  el.classList.toggle('on');
+}
+
+/* ── Log ── */
+function addLog(level, msg) {
+  var now = new Date();
+  var ts = now.toTimeString().substring(0, 8);
+  var entry = { level: level, msg: msg, ts: ts };
+  state.logs.push(entry);
+  var area = document.getElementById('logArea');
+  var div = document.createElement('div');
+  div.className = 'log-entry ' + level;
+  div.innerHTML = '<span class="ts">[' + ts + ']</span> ' + escapeHtml(msg);
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function clearLog() {
+  state.logs = [];
+  document.getElementById('logArea').innerHTML = '';
+  addLog('info', 'Log limpiado');
+}
+
+/* ── Utils ── */
+function escapeHtml(str) {
+  var d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ── Global: expose progress updater for pywebview callbacks ── */
+window.updateDownloadProgress = updateDownloadProgress;
+
+/* ── Init ── */
+window.addEventListener('DOMContentLoaded', function() {
+  addLog('info', 'El Oraculo McComics v4.0 — UI inicializada');
+  renderPaths();
+  renderComplianceChecks(null);
+  refreshStatus();
+  refreshModel();
+  refreshTraining();
+});
+</script>
+</body>
+</html>
