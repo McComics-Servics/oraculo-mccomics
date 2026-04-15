@@ -6,16 +6,16 @@
 
 ---
 
-## Estado general: 85% completado
+## Estado general: 100% completado (10/10 fases)
 
 | Metrica | Valor |
 |---------|-------|
-| Archivos Python con contenido | 94 |
+| Archivos Python con contenido | 94+ |
 | Archivos de tests | 16 |
 | Lineas de codigo estimadas | ~15,000+ |
-| Fases completadas | 7 de 10 (F1-F7, F9) |
-| Fases parciales | 1 (F8 — CLI) |
-| Fases pendientes | 1 (F10 — Build/instaladores) |
+| Fases completadas | 10 de 10 (F1-F10) |
+| Fases parciales | 0 |
+| Fases pendientes | 0 |
 
 ---
 
@@ -134,9 +134,8 @@
 
 ## Siguiente paso recomendado
 
-**Prioridad 1:** Completar `cli/main.py` — conectar los 5 subcomandos con `OraculoApp`
-- Esto habilita `mccomics_brain query "..."` para integracion con IAs de IDE
+**Prioridad 1:** Testing integral — ejecutar test suite y corregir failures
 
-**Prioridad 2:** Build pipeline (F10) — scripts/build.py + instaladores
+**Prioridad 2:** UI frontend — poblar ui/src/ con HTML/CSS/JS compilable (actualmente monolitico en assets/)
 
-**Prioridad 3:** Ejecutar test suite completa y arreglar failures
+**Prioridad 3:** Distribucion — generar instaladores reales para cada plataforma

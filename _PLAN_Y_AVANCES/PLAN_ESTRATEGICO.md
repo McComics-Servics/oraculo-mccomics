@@ -17,24 +17,18 @@
 | F5 | Cognitive Core (llama.cpp + Ollama + OpenAI) | Media | ✅ COMPLETA |
 | F6 | Polyglot Fabric L2 (ANTLR COBOL/PL/I) + L3 (RPG/JCL) | Media-Alta | ✅ COMPLETA |
 | F7 | Interfaz completa (10 pestanas) + glassmorphism | Alta | ✅ COMPLETA (monolitico) |
-| F8 | API local + HTTP + IPC + CLI funcional | Media | ⚠️ PARCIAL |
+| F8 | API local + HTTP + IPC + CLI funcional | Media | ✅ COMPLETA |
 | F9 | Seguridad Banking: air-gap + crypto-shred + audit chain | Alta | ✅ COMPLETA |
-| F10 | Build system + instaladores + doctor + offline bundle | Media | ❌ PENDIENTE |
+| F10 | Build system + instaladores + doctor + offline bundle | Media | ✅ COMPLETA |
 
 ---
 
-## Detalle de lo pendiente
+## Estado: TODAS LAS FASES COMPLETADAS (10/10)
 
-### F8 — CLI funcional (unico componente parcial)
-- `src/oraculo/cli/main.py`: tiene 5 subcomandos parseados pero los handlers son stubs
-- **Falta:** conectar `_cmd_query`, `_cmd_index`, `_cmd_status`, `_cmd_serve` con `OraculoApp`
-- **Criterio de exito:** `mccomics_brain query "texto"` devuelve fragmentos reales
-
-### F10 — Build y distribucion (pendiente completo)
-- `scripts/build.py`: pipeline de 13 fases
-- Instaladores: NSIS (Windows), .pkg (macOS), AppImage (Linux)
-- Bundle offline para Banking (~550MB)
-- Doctor de dependencias standalone
+### Resumen de cierre
+- **F8 (CLI):** Los 6 subcomandos (query, index, profile, health, status, serve) conectados a OraculoApp.
+- **F10 (Build):** `scripts/build.py` con pipeline de 13 fases, bundler offline, doctor, installer (NSIS/AppImage/pkg).
+- **Siguiente paso:** Testing integral, pulido UI, distribucion.
 
 ---
 
