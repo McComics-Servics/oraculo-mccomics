@@ -99,17 +99,38 @@ class SqliteFtsStore:
         return len(rows)
 
     def search_bm25(self, query: str, limit: int = 20) -> list[tuple[str, float, str]]:
-        """Busqueda BM25. Retorna [(fragment_id, rank, snippet)]."""
-        cursor = self._conn.execute(
-            """SELECT f.fragment_id, fts.rank, snippet(fragments_fts, 0, '<b>', '</b>', '...', 40)
-               FROM fragments_fts fts
-               JOIN fragments f ON f.rowid = fts.rowid
-               WHERE fragments_fts MATCH ?
-               ORDER BY fts.rank
-               LIMIT ?""",
-            (query, limit),
-        )
-        return cursor.fetchall()
+        """Busqueda BM25. Retorna [(fragment_id, rank, snippet)].
+        Convierte queries de lenguaje natural a OR para FTS5."""
+        fts_query = self._to_fts5_query(query)
+        if not fts_query:
+            return []
+        try:
+            cursor = self._conn.execute(
+                """SELECT f.fragment_id, fts.rank, snippet(fragments_fts, 0, '<b>', '</b>', '...', 40)
+                   FROM fragments_fts fts
+                   JOIN fragments f ON f.rowid = fts.rowid
+                   WHERE fragments_fts MATCH ?
+                   ORDER BY fts.rank
+                   LIMIT ?""",
+                (fts_query, limit),
+            )
+            return cursor.fetchall()
+        except Exception:
+            return []
+
+    @staticmethod
+    def _to_fts5_query(query: str) -> str:
+        """Convierte lenguaje natural a query FTS5 con OR."""
+        stop = {"como", "que", "el", "la", "los", "las", "un", "una", "de", "del",
+                "en", "y", "o", "a", "al", "por", "para", "con", "sin", "se", "su",
+                "es", "no", "si", "mas", "the", "and", "or", "is", "in", "of", "to",
+                "a", "an", "for", "with", "how", "what", "does", "do", "when", "this"}
+        words = []
+        for w in query.split():
+            clean = "".join(c for c in w if c.isalnum() or c == "_")
+            if clean and clean.lower() not in stop and len(clean) > 1:
+                words.append(clean)
+        return " OR ".join(words) if words else ""
 
     def delete_by_file(self, file_path: str) -> int:
         cur = self._conn.execute("DELETE FROM fragments WHERE file_path = ?", (file_path,))
