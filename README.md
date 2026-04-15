@@ -18,11 +18,38 @@ Funciona con Python, Ruby, JavaScript, TypeScript, Java, Go, Rust, C, C++, COBOL
 
 ## El problema que resuelve
 
-Si trabajas en un banco, una entidad de gobierno, una empresa de defensa o cualquier organizacion que opera bajo regulaciones de seguridad, ya sabes esto: **no puedes copiar tu codigo en ChatGPT, Copilot ni ningun servicio en la nube**. Hacerlo viola politicas internas, regulaciones de compliance y en muchos casos la ley.
+Cada vez que le pides a una IA que modifique tu codigo, estas pagando tokens. Y la mayoria de esos tokens se desperdician porque la IA no tiene contexto de tu proyecto — no sabe que archivos existen, no entiende la estructura, no conoce tus funciones ni tus clases. Entonces le copias y pegas fragmentos a mano, repites contexto, y la IA sigue cometiendo errores porque trabaja a ciegas.
+
+**El Oraculo elimina ese problema.**
+
+Cuando indexas tu proyecto, El Oraculo construye un mapa completo de tu codigo: cada archivo, cada funcion, cada clase, cada dependencia. Cuando despues le haces una pregunta — ya sea desde la interfaz, la API o integrado con tu editor — el motor de busqueda encuentra exactamente los fragmentos relevantes, los ordena por importancia, elimina duplicados y arma un paquete de contexto optimizado.
+
+Eso significa:
+
+- **Menos tokens gastados.** En lugar de copiar archivos enteros, le pasas a la IA solo los fragmentos que necesita. Un proyecto de 50,000 lineas se reduce a los 20 fragmentos relevantes que caben en 4,096 tokens.
+- **Respuestas mas precisas.** La IA no tiene que adivinar. Recibe el contexto correcto, ordenado por relevancia, con la confianza calculada de cada fragmento.
+- **Menos iteraciones.** Cuando la IA entiende tu codigo de verdad, el primer intento suele ser el correcto. Menos "no, eso no era lo que pedi", menos "te falto importar X", menos retrabajo.
+- **Tu codebase se vuelve la base de conocimiento de la IA.** No estas entrenando un modelo nuevo — estas dandole a cualquier LLM (local o remoto) acceso instantaneo a todo tu codigo, bien organizado y bien fragmentado.
+
+### Para empresas: el costo real de no tener esto
+
+Una empresa con 10 desarrolladores que usa GPT-4 o Claude gasta entre $500 y $3,000 al mes en tokens de API. La mayor parte de ese gasto se va en contexto mal armado: archivos completos donde solo se necesitaban 20 lineas, preguntas repetidas porque la IA no recordaba la respuesta anterior, correcciones que no deberian haber sido necesarias.
+
+Con El Oraculo ensamblando el contexto, ese gasto se reduce drasticamente. No porque uses menos la IA — sino porque cada llamada rinde mas.
+
+### Para desarrolladores individuales: trabaja mas rapido
+
+Si usas Copilot, Cursor, Cody o cualquier asistente, ya sabes que funcionan mejor cuando entienden tu proyecto. El Oraculo te da eso sin pagar suscripcion mensual y sin enviar tu codigo a la nube. Indexas tu proyecto una vez, y cada pregunta que hagas va acompanada del contexto exacto que la IA necesita.
+
+---
+
+## Si trabajas en un banco, un gobierno o una empresa regulada
+
+Si tu organizacion opera bajo regulaciones de seguridad, ya sabes esto: **no puedes copiar tu codigo en ChatGPT, Copilot ni ningun servicio en la nube**. Hacerlo viola politicas internas, regulaciones de compliance y en muchos casos la ley.
 
 ¿Y que pasa con los equipos que mantienen sistemas legacy? COBOL, PL/I, RPG — lenguajes que mueven billones de dolares diarios en transacciones bancarias y que ningun asistente de IA del mercado entiende.
 
-El Oraculo fue construido para resolver exactamente eso.
+El Oraculo fue construido para resolver exactamente eso. Y cualquier uso empresarial, bancario o gubernamental requiere una licencia comercial — porque las herramientas que protegen activos criticos tienen un valor que merece ser reconocido.
 
 ---
 
@@ -186,17 +213,21 @@ Un modelo mas grande entiende mejor el contexto, genera respuestas mas precisas 
 
 ---
 
-## Por que bancos y gobiernos deberian usarlo
+## Por que bancos y gobiernos deberian adquirir la licencia
 
-1. **Cumplimiento normativo real.** No es un checkbox en un formulario. El perfil banking implementa air-gap verificado, destruccion criptografica y cadena de auditoria con hashes encadenados. Cosas que la mayoria de herramientas comerciales no ofrecen ni en su tier mas caro.
+1. **Ahorro real de costos en IA.** Si tu organizacion gasta miles de dolares al mes en tokens de GPT-4 o Claude, El Oraculo reduce ese gasto porque cada llamada lleva solo el contexto necesario. No archivos enteros. No contexto repetido. Solo lo que importa.
 
-2. **El codigo nunca sale de la red interna.** No hay "confia en nosotros, no leemos tu codigo". Aqui no hay servidor al que enviar nada. El modelo corre en tu maquina. Punto.
+2. **Cumplimiento normativo real.** No es un checkbox en un formulario. El perfil banking implementa air-gap verificado, destruccion criptografica y cadena de auditoria con hashes encadenados. Cosas que la mayoria de herramientas comerciales no ofrecen ni en su tier mas caro.
 
-3. **Soporte para sistemas legacy.** Los mainframes que procesan las transacciones del 90% de la banca mundial corren COBOL. Ningun otro asistente de IA los entiende. Este si.
+3. **El codigo nunca sale de la red interna.** No hay "confia en nosotros, no leemos tu codigo". Aqui no hay servidor al que enviar nada. El modelo corre en tu maquina. Punto.
 
-4. **Auditabilidad total.** Cada consulta, cada indexacion, cada cambio de perfil queda registrado en una cadena inmutable. Si un auditor pregunta que paso el martes a las 3pm, hay un registro con hash criptografico que lo demuestra.
+4. **Soporte para sistemas legacy.** Los mainframes que procesan las transacciones del 90% de la banca mundial corren COBOL. Ningun otro asistente de IA los entiende. Este si.
 
-5. **Sin dependencia de terceros.** Si mañana OpenAI cambia sus terminos, si GitHub sube precios, si un proveedor de nube sufre un breach — El Oraculo sigue funcionando exactamente igual. Porque no depende de nadie.
+5. **Auditabilidad total.** Cada consulta, cada indexacion, cada cambio de perfil queda registrado en una cadena inmutable. Si un auditor pregunta que paso el martes a las 3pm, hay un registro con hash criptografico que lo demuestra.
+
+6. **Sin dependencia de terceros.** Si mañana OpenAI cambia sus terminos, si GitHub sube precios, si un proveedor de nube sufre un breach — El Oraculo sigue funcionando exactamente igual. Porque no depende de nadie.
+
+7. **Tu equipo de desarrollo rinde mas.** Cada desarrollador que usa El Oraculo escribe mejor codigo, en menos tiempo, con menos errores. Multiplica eso por 10, 50 o 200 desarrolladores y el retorno de inversion se mide en semanas, no en meses.
 
 ---
 
@@ -239,15 +270,15 @@ Un modelo mas grande entiende mejor el contexto, genera respuestas mas precisas 
 
 **Business Source License 1.1** — la misma licencia que usan MariaDB, CockroachDB y HashiCorp.
 
-Puedes usar El Oraculo libremente para desarrollo, investigacion, educacion y uso interno. Lo unico que no puedes hacer sin licencia comercial es montarlo como servicio y cobrar por el.
+La version Community es gratuita **solo para personas individuales**: desarrolladores independientes, estudiantes e investigadores. Si eres una empresa, un banco, una entidad de gobierno o cualquier organizacion con mas de un empleado — necesitas licencia comercial. No hay excepciones de "uso interno" ni "evaluacion gratuita para empresas".
 
 El 14 de abril de 2030 se convierte automaticamente en Apache License 2.0.
 
-| Edicion | Precio | Que incluye |
-|---------|--------|-------------|
-| **Community** | Gratis | Todo el motor, sin limites de uso |
-| **Enterprise** | $29-99/mes | Soporte prioritario, actualizaciones, uso comercial |
-| **Banking** | Desde $5,000 | Instalacion on-premise, configuracion air-gap, SLA |
+| Edicion | Precio | Para quien |
+|---------|--------|------------|
+| **Community** | Gratis | Desarrolladores individuales, estudiantes, investigadores |
+| **Enterprise** | $29-99/mes | Startups, empresas, equipos de desarrollo |
+| **Banking** | Desde $5,000 | Bancos, gobierno, defensa, entornos regulados |
 
 ---
 

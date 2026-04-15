@@ -3,12 +3,20 @@ Business Source License 1.1
 Licensor:  McComics Servicios Generales — Lima, Peru
 Licensed Work:  El Oraculo McComics v4.0
                 The Licensed Work is (c) 2026 McComics Servicios Generales.
-Additional Use Grant:  You may make use of the Licensed Work, provided that
-                       you do not use the Licensed Work for a Code Intelligence
-                       Service. A "Code Intelligence Service" is a commercial
-                       offering that allows third parties to access the
-                       functionality of the Licensed Work remotely (e.g., via
-                       a web service, API, or SaaS platform).
+Additional Use Grant:  You may make use of the Licensed Work ONLY if you are
+                       an individual person using it for personal development,
+                       academic research, or educational purposes. Any use by
+                       a company, corporation, government entity, financial
+                       institution, or any organization with more than one (1)
+                       employee — including but not limited to internal use,
+                       evaluation, testing, or integration — requires a paid
+                       commercial license from the Licensor.
+
+                       Additionally, you may not use the Licensed Work to
+                       provide a Code Intelligence Service. A "Code Intelligence
+                       Service" is any offering that allows third parties to
+                       access the functionality of the Licensed Work remotely
+                       (e.g., via a web service, API, or SaaS platform).
 
 Change Date:  2030-04-14
 Change License:  Apache License, Version 2.0
@@ -64,7 +72,10 @@ COMMERCIAL LICENSING
 El Oraculo McComics ofrece tres modalidades:
 
 1. COMMUNITY EDITION: Bajo esta Business Source License.
-   Uso gratuito para desarrollo, investigacion, educacion y uso interno.
+   Uso gratuito UNICAMENTE para personas individuales:
+   desarrolladores independientes, estudiantes e investigadores.
+   Cualquier uso por parte de una empresa, banco, entidad de gobierno
+   u organizacion con mas de un empleado requiere licencia comercial.
    Prohibido ofrecer como servicio comercial a terceros.
 
 2. ENTERPRISE EDITION: $29-99/mes
