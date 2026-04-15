@@ -121,9 +121,50 @@ oraculo --server
 curl -X POST http://localhost:9741/api/v1/index -d '{"paths": ["/ruta/a/tu/proyecto"]}'
 ```
 
-### 4. Hacer preguntas
+### 4. Hacer preguntas en lenguaje natural
 
-Una vez indexado, puedes buscar y preguntar:
+**Desde la terminal (CLI) — la forma mas rapida:**
+
+```powershell
+# Pregunta directa en español
+mccomics_brain query "¿donde esta la funcion que calcula el corte a 45 grados?"
+
+# Buscar dentro de un dominio especifico
+mccomics_brain query "funciones que usan melamina de 18mm" --domain code
+
+# Obtener contexto JSON optimizado para IAs
+mccomics_brain query "refuerzo trasero del mueble" --format json --budget 4000
+```
+
+**Ejemplo de respuesta:**
+
+```
+🔍 Query: "¿donde esta la funcion que calcula el corte a 45 grados?"
+
+📄 [trust:1/canon] modules/estructura_pro/core/estructura_logic.rb:142-187
+   → Funcion calculate_c45_cut: logica de corte a 45° con validacion de grosor
+
+📄 [trust:1/canon] modules/cajonera/core/geometry_builder.rb:89-112
+   → Metodo apply_miter_cut: aplica inglete en piezas laterales
+
+📄 [trust:2/alta] modules/Despiece_McComics/core/piece_rules.rb:45-68
+   → Regla de asignacion C45: marca piezas que requieren corte angular
+
+Fragmentos: 3 | Tokens est.: 487 | Tiempo: 82ms
+```
+
+**Mas ejemplos de preguntas utiles:**
+
+| Pregunta en lenguaje natural | Que devuelve |
+|---|---|
+| `"¿que hace la funcion calculate_pieces?"` | Codigo exacto + firma + docstring |
+| `"funciones que llaman a geometry_builder"` | Grafo de llamadas (callers directos) |
+| `"archivos que usan HtmlDialog"` | Match lexico BM25 en todo el proyecto |
+| `"¿donde se valida el grosor de melamina?"` | Fragmentos AST similares + semanticos |
+| `"bugs relacionados con el cursor personalizado"` | Busqueda combinada docs + code |
+| `"diferencias entre cajonera y estructura_pro"` | Comparacion semantica de modulos |
+
+**Desde Python (para automatizacion):**
 
 ```python
 assembler = ctx["assembler"]
@@ -143,6 +184,148 @@ La busqueda combina BM25 (busqueda lexica en SQLite FTS5) con busqueda de simbol
 | Busqueda BM25 | 315 fragmentos | < 10 ms |
 | Ensamblado completo (busqueda + fusion + dedup) | 5 resultados | < 50 ms |
 | Carga del modelo LLM en RAM | 2 GB | 30-60 segundos (una sola vez) |
+
+---
+
+## Integracion con IAs de IDE (Claude Code, Kiro, Antigravity, Cursor)
+
+### El problema: tu IA gasta tokens buscando a ciegas
+
+Cuando le das una instruccion a la IA de tu IDE, esto es lo que pasa normalmente:
+
+1. La IA lee tu AGENTS.md o CLAUDE.md
+2. Empieza a hacer `grep`, `glob`, `read` por todo el workspace
+3. Gasta **miles de tokens** buscando archivos relevantes
+4. A veces ni encuentra lo correcto
+
+**Con El Oraculo corriendo en background**, la IA le pregunta primero y recibe los fragmentos exactos **antes de tocar un solo archivo**.
+
+```
+SIN Oraculo:                          CON Oraculo:
+─────────────                         ────────────
+grep "cursor" → 847 archivos          mccomics_brain query "cursor cajonera"
+lee 12 archivos buscando...           → 2 archivos exactos en 82ms
+3,400 tokens gastados                 → 400 tokens gastados
+puede que no encuentre nada           → va directo al problema
+```
+
+### Como configurarlo (3 pasos)
+
+**Paso 1 — Verifica que El Oraculo esta corriendo:**
+
+```powershell
+mccomics_brain health
+# ✅ Daemon activo | Perfil: basic | Archivos: 1,247
+```
+
+**Paso 2 — Agrega esta regla a tu AGENTS.md (o CLAUDE.md) del proyecto:**
+
+```markdown
+## Regla: Consultar al Oraculo antes de investigar
+
+Antes de buscar codigo con grep/glob/read para responder una pregunta
+del usuario:
+
+1. Ejecuta en terminal:
+   mccomics_brain query "<la pregunta del usuario>" --format json --budget 4000
+
+2. Lee la respuesta JSON. Cada fragmento contiene:
+   - Archivo y lineas exactas
+   - trust_tier (1=canon, 2=alta, 3=contextual)
+   - stale (true si el archivo cambio desde la ultima indexacion)
+
+3. Solo lee los archivos que el Oraculo indico como relevantes
+4. Si trust_tier=1 y stale=false, confia en el fragmento sin releer
+5. Si stale=true, relee el archivo para verificar cambios recientes
+6. Si el Oraculo no devuelve resultados, usa grep/glob normal
+```
+
+**Paso 3 (opcional) — Hook recordatorio para Claude Code:**
+
+Agrega esto a tu `settings.json` o `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob",
+        "command": "echo 'Recuerda: puedes usar mccomics_brain query antes de buscar manualmente'"
+      }
+    ]
+  }
+}
+```
+
+### Las 3 vias de comunicacion IA ↔ Oraculo
+
+```
+┌──────────────────────────────────────────────────┐
+│               IA DEL IDE                          │
+│  (Claude Code / Kiro / Antigravity / Cursor)      │
+└──────┬───────────────┬──────────────┬────────────┘
+       │               │              │
+  ① CLI (Bash)   ② HTTP local   ③ PowerShell
+       │               │              │
+       ▼               ▼              ▼
+┌──────────────────────────────────────────────────┐
+│           EL ORACULO McComics®                    │
+│  Daemon local en background                       │
+│  Puerto: 127.0.0.1:8888                          │
+└──────────────────────────────────────────────────┘
+```
+
+| Via | Comando | Cuando usar |
+|---|---|---|
+| **① CLI (recomendada)** | `mccomics_brain query "..."` | Todas las IAs de IDE tienen acceso a terminal |
+| **② HTTP local** | `curl http://127.0.0.1:8888/v1/query -d '{"q":"..."}'` | Si prefieres requests HTTP |
+| **③ PowerShell** | `Invoke-RestMethod -Uri "http://127.0.0.1:8888/v1/query" -Method Post -Body '{"q":"..."}'` | Windows nativo sin curl |
+
+### Ejemplo real completo
+
+```
+USUARIO: "Arregla el bug del cursor personalizado en cajonera"
+
+IA ejecuta automaticamente (por la regla en AGENTS.md):
+  $ mccomics_brain query "bug cursor personalizado cajonera" --format json
+
+RESPUESTA DEL ORACULO (JSON):
+{
+  "fragments": [
+    {
+      "file": "modules/cajonera/ui/parametric_dialog.rb",
+      "lines": [234, 267],
+      "trust_tier": 1,
+      "stale": false,
+      "content": "def set_custom_cursor... # logica del cursor"
+    },
+    {
+      "file": "modules/cajonera/core/geometry_builder.rb",
+      "lines": [67, 89],
+      "trust_tier": 2,
+      "stale": false,
+      "content": "def on_mouse_move... # responde a eventos del cursor"
+    }
+  ],
+  "tokens_used": 287,
+  "query_time_ms": 82
+}
+
+IA lee SOLO esos 2 archivos → encuentra y arregla el bug directo.
+```
+
+### Estado actual de esta integracion
+
+| Componente | Estado | Fase |
+|---|---|---|
+| Estructura del proyecto | ✅ Creada | F1 |
+| Policy Engine (3 perfiles) | ✅ Funcional | F1 |
+| CLI `mccomics_brain query` | ⏳ Pendiente | F4-F8 |
+| HTTP `/v1/query` | ⏳ Pendiente | F8 |
+| Indexacion de codigo | ⏳ Pendiente | F2-F3 |
+| Interfaz grafica 8 pestañas | ⏳ Pendiente | F7 |
+
+> **Nota:** El CLI y la API aun no estan operativos. Cuando se completen las Fases 2-4, podras usar `mccomics_brain query` desde cualquier IA de IDE.
 
 ---
 
